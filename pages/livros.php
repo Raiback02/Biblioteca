@@ -1,14 +1,16 @@
 <?php
     require_once "modulos/livros/listarLivros.php";
+    require_once "modulos/livros/buscarLivros.php";
 ?>
 <div class="container mt-4">
     <h1 class="mb-4">Gestão de Livros</h1>
 
     <!-- Barra de busca -->
     <div class="mb-3">
-        <form method="GET" action="?page=livros">
+        <form method="GET" action="index.php">
+        <input type="hidden" name="page" value="livros"> <!-- Mantém -->
             <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Buscar livro..." value="<?= $_GET['search'] ?? '' ?>">
+                <input type="text" name="search" class="form-control" placeholder="Buscar livro..." value="<?= htmlspecialchars($search) ?>">
                 <button class="btn btn-primary" type="submit">Buscar</button>
             </div>
         </form>
@@ -20,15 +22,15 @@
     </div>
     <!--Exibir mensagens de sucesso ou erro após a exclusão-->
     <?php
-        if (isset($_GET['message'])) {
-            $messageType = $_GET['message'] === 'success' ? 'alert-success' : 'alert-danger';
-            $messageText = $_GET['message'] === 'success' ? 'Livro excluído com sucesso!' : 'Erro ao excluir o livro.';
+    if (isset($_GET['message'])) {
+        $messageType = $_GET['message'] === 'success' ? 'alert-success' : 'alert-danger';
+        $messageText = $_GET['message'] === 'success' ? 'Operação efectuada com sucesso!' : 'Não foi possível efectuar a operação!';
 
-            echo "<div class='alert $messageType' role='alert'>$messageText</div>";
+        echo "<div class='alert $messageType' role='alert'>$messageText</div>";
 
-            // Redireciona para a página sem o parâmetro 'message' após 3 segundos
-            header("Refresh:3; url=?page=livros");
-        }
+        // Redireciona para a página sem o parâmetro 'message' após 3 segundos
+        header("Refresh:3; url=?page=livros");
+    }
     ?>
 
     <!-- Tabela de livros -->
@@ -39,12 +41,13 @@
                 <th>Título</th>
                 <th>Autor</th>
                 <th>Gênero</th>
-                <th>Quantidade</th>
+                <th>Ano</th>
+                <th>Qtde</th>                
                 <th>Ações</th>
             </tr>
         </thead>
         <tbody>
-        <?php
+            <?php
             // Exibição dos livros
             if (count($livros) > 0) {
                 foreach ($livros as $livro) {
@@ -53,10 +56,21 @@
                         <td>{$livro['titulo']}</td>
                         <td>{$livro['autor']}</td>
                         <td>{$livro['genero']}</td>
+                        <td>{$livro['ano']}</td>
                         <td>{$livro['quantidade']}</td>
                         <td>
-                            <button class='btn btn-primary btn-sm' data-bs-toggle='modal' data-bs-target='#editBookModal' data-id='{$livro['id']}'>Editar</button>
-                            <form action='modulos/livros/deleteLivros.php' method='POST' style='display:inline;'>
+
+                            <form method='POST' action='?page=livros' style='display:inline;>
+                                <input type='hidden' name='id' value='{$livro['id']}'>
+                                <input type='hidden' name='titulo' value='{$livro['titulo']}'>
+                                <input type='hidden' name='autor' value='{$livro['autor']}'>
+                                <input type='hidden' name='genero' value='{$livro['genero']}'>
+                                <input type='hidden' name='ano' value='{$livro['ano']}'>
+                                <input type='hidden' name='quantidade' value='{$livro['quantidade']}'>
+                                <button type='submit' class='btn btn-primary btn-sm' data-bs-toggle='modal' data-bs-target='#editBookModal'>Editar</button>
+                            </form>
+                            
+                            <form method='POST' action='modulos/livros/deleteLivros.php' style='display:inline;'>
                                 <input type='hidden' name='id' value='{$livro['id']}'>
                                 <button type='submit' class='btn btn-danger btn-sm' onclick=\"return confirm('Tem certeza que deseja excluir este livro?');\">Excluir</button>
                             </form>
@@ -66,7 +80,7 @@
             } else {
                 echo "<tr><td colspan='6' class='text-center'>Nenhum livro encontrado.</td></tr>";
             }
-        ?>
+            ?>
 
         </tbody>
     </table>
@@ -82,18 +96,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!--Exibir mensagens de sucesso ou erro após a adição-->
-                    <?php if (isset($_GET['success'])): ?>
-                        <div class="alert alert-success" role="alert">
-                            <?= htmlspecialchars($_GET['success']); ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (isset($_GET['error'])): ?>
-                        <div class="alert alert-danger" role="alert">
-                            <?= htmlspecialchars($_GET['error']); ?>
-                        </div>
-                    <?php endif; ?>
 
                     <div class="mb-3">
                         <label for="titulo" class="form-label">Título</label>
@@ -106,6 +108,10 @@
                     <div class="mb-3">
                         <label for="genero" class="form-label">Gênero</label>
                         <input type="text" class="form-control" id="genero" name="genero" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ano" class="form-label">Ano</label>
+                        <input type="number" class="form-control" id="ano" name="ano" required>
                     </div>
                     <div class="mb-3">
                         <label for="quantidade" class="form-label">Quantidade</label>
@@ -121,38 +127,44 @@
     </div>
 </div>
 
+
 <!-- Modal para editar livro -->
 <div class="modal fade" id="editBookModal" tabindex="-1" aria-labelledby="editBookModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="actions/editBook.php">
+            <form method="POST" action="modulos/livros/editarLivros.php">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editBookModalLabel">Editar Livro</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Campos para edição do livro (preenchidos com dados via JS/AJAX) -->
-                    <input type="hidden" id="edit-id" name="id">
+                    <input type="hidden" id="edit_id" name="id" value="<?= $id ?>">
+
+                    <!-- Campos para edição do livro (preenchidos com dados via PHP) -->
                     <div class="mb-3">
                         <label for="edit-titulo" class="form-label">Título</label>
-                        <input type="text" class="form-control" id="edit-titulo" name="titulo" required>
+                        <input type="text" class="form-control" id="edit-titulo" name="titulo" value="<?= $titulo ?>" required>
                     </div>
-                    <div class="mb-3">
+                    <div class=" mb-3">
                         <label for="edit-autor" class="form-label">Autor</label>
-                        <input type="text" class="form-control" id="edit-autor" name="autor" required>
+                        <input type="text" class="form-control" id="edit-autor" name="autor" value="<?= $autor ?>" required>
+                    </div>
+                    <div class=" mb-3">
+                        <label for="edit-genero" class="form-label">Gênero</label>
+                        <input type="text" class="form-control" id="edit-genero" name="genero" value="<?= $genero ?>" required>
                     </div>
                     <div class="mb-3">
-                        <label for="edit-genero" class="form-label">Gênero</label>
-                        <input type="text" class="form-control" id="edit-genero" name="genero" required>
+                        <label for="ano" class="form-label">Ano</label>
+                        <input type="number" class="form-control" id="edit-ano" name="ano" value="<?= $ano ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="edit-quantidade" class="form-label">Quantidade</label>
-                        <input type="number" class="form-control" id="edit-quantidade" name="quantidade" required>
+                        <input type="number" class="form-control" id="edit-quantidade" name="quantidade" value="<?= $quantidade ?>" required>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class=" modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    <button type="submit" class="btn btn-success">Salvar Alterações</button>
                 </div>
             </form>
         </div>

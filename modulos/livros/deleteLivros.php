@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             } else {
                 // Redireciona com uma mensagem de erro
-                header("Location: ../../index.php?page=livros&message=success");
+                header("Location: ../../index.php?page=livros&message=erro");
                 exit;
             }
         } catch (PDOException $e) {
