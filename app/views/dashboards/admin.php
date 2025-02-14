@@ -2,8 +2,8 @@
 <?php require_once "../includes/sidebar.php"; ?>
 
 <?php
-//require_once "../includes/restrito.php";
-//verificarAcesso(["Administrador"]);
+require_once "../includes/restrito.php";
+verificarAcesso(["Administrador"]);
 ?>
 
 <h2>Painel do Administrador</h2>
