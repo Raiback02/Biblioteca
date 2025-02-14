@@ -1,0 +1,9 @@
+.nav-link {
+    transition: background 0.3s ease-in-out;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.nav-link:hover {
+    background: #555;
+}
