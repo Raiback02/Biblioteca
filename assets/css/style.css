@@ -1,0 +1,16 @@
+.carousel-inner img {
+    width: 800px;  
+    height: 300px;  
+    margin: 0 auto; 
+    display: block;
+}
+
+.nav-link {
+    transition: background 0.3s ease-in-out;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.nav-link:hover {
+    background: #555;
+}
